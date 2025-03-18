@@ -1,0 +1,10 @@
+.env
+/node_modules
+/tmp/*
+/tmp
+/config/config.json
+stderr.log
+.htaccess
+package-lock.json
+combined.log
+error.log
