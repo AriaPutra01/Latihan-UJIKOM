@@ -39,7 +39,7 @@ self.register = async (req, res, next) => {
 };
 
 // Login User
-self.login = async (req, res) => {
+self.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -55,15 +55,16 @@ self.login = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     res.sendSuccess(
       {
-        id: user.id,
-        name: user.name,
-        email: user.email,
         token,
       },
       "User logged in successfully!"
@@ -74,7 +75,7 @@ self.login = async (req, res) => {
 };
 
 // Get User Info (Protected Route)
-self.me = async (req, res) => {
+self.me = async (req, res, next) => {
   try {
     const user = req?.user;
 
