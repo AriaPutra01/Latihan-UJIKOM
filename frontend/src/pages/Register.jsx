@@ -1,7 +1,9 @@
-import React from "react";
-import { Link } from "react-router";
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import { registerUser } from "@/store/thunks/authThunk";
 
 export default function Register() {
   const {
@@ -13,17 +15,30 @@ export default function Register() {
 
   const password = watch("password");
 
-  const onSubmit = async (data) => {
-    try {
-      const response = await axios.post(
-        "http://localhost:3001/v1/auth/register",
-        data
-      );
-      console.log("Response:", response.data);
-    } catch (error) {
-      console.error("Error:", error.response?.data || error.message);
-    }
+  const token = useSelector((state) => state.auth.token);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const onSubmit = async (field) => {
+    dispatch(
+      registerUser({
+        field,
+        onSuccess: (res) => {
+          toast.success(res.message || "Register success");
+          navigate("/login");
+        },
+        onError: (error) => {
+          toast.error(error?.message || "Register failed");
+        },
+      })
+    );
   };
+
+  useEffect(() => {
+    if (token) {
+      navigate("/home");
+    }
+  });
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
