@@ -10,6 +10,10 @@ self.getAllList = async (user_id) => {
   });
 };
 
+self.getListById = async (id) => {
+  return await List.findByPk(id);
+};
+
 self.createList = async (user_id, name) => {
   return await List.create({
     user_id,
