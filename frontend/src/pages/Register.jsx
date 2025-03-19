@@ -1,21 +1,69 @@
 import React from "react";
 import { Link } from "react-router";
+import { useForm } from "react-hook-form";
+import axios from "axios";
 
 export default function Register() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+
+  const password = watch("password");
+
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3001/v1/auth/register",
+        data
+      );
+      console.log("Response:", response.data);
+    } catch (error) {
+      console.error("Error:", error.response?.data || error.message);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="w-full max-w-md space-y-6 p-8 rounded-2xl">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-md space-y-2 p-8 rounded-2xl shadow-lg">
         <h2 className="text-center text-2xl font-semibold text-white">
           Register
         </h2>
 
         <div>
+          <label className="block text-sm font-medium text-white">Name</label>
+          <input
+            {...register("name", { required: "Name is required" })}
+            type="text"
+            placeholder="Enter your name"
+            className="w-full mt-1 p-3 text-white rounded-lg border border-white  focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          {errors.name && (
+            <p className="text-[red] text-sm">{errors.name.message}</p>
+          )}
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-white">Email</label>
           <input
+            {...register("email", {
+              required: "Email is required",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Invalid email format",
+              },
+            })}
             type="email"
             placeholder="Enter your email"
-            className="w-full mt-1 p-3 text-white rounded-lg border border-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full mt-1 p-3 text-white rounded-lg border border-white  focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          {errors.email && (
+            <p className="text-[red] text-sm">{errors.email.message}</p>
+          )}
         </div>
 
         <div>
@@ -23,10 +71,20 @@ export default function Register() {
             Password
           </label>
           <input
+            {...register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 6,
+                message: "Password must be at least 6 characters",
+              },
+            })}
             type="password"
             placeholder="Enter your password"
-            className="w-full mt-1 p-3 text-white rounded-lg border border-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full mt-1 p-3 text-white rounded-lg border border-white  focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          {errors.password && (
+            <p className="text-[red] text-sm">{errors.password.message}</p>
+          )}
         </div>
 
         <div>
@@ -34,13 +92,23 @@ export default function Register() {
             Confirm Password
           </label>
           <input
+            {...register("confirmPassword", {
+              required: "Confirm Password is required",
+              validate: (value) =>
+                value === password || "Passwords do not match",
+            })}
             type="password"
             placeholder="Confirm your password"
-            className="w-full mt-1 p-3 text-white rounded-lg border border-white focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full mt-1 p-3 text-white rounded-lg border border-white  focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          {errors.confirmPassword && (
+            <p className="text-[red] text-sm">
+              {errors.confirmPassword.message}
+            </p>
+          )}
         </div>
 
-        <button className="w-full p-3 bg-primary text-white rounded-lg hover:bg-primary transition">
+        <button className="w-full p-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition">
           Register
         </button>
 
@@ -56,7 +124,7 @@ export default function Register() {
             Login
           </Link>
         </p>
-      </div>
+      </form>
     </div>
   );
 }
