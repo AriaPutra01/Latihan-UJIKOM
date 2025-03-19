@@ -10,7 +10,7 @@ import {
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    status: false,
+    status: status.IDLE,
     data: null,
     error: null,
     token: null,
