@@ -17,7 +17,7 @@ self.createTaks = async (field) => {
 self.updateTaks = async (id, field) => {
   const result = await Taks.findByPk(id);
   await result.update(field);
-  return Taks;
+  return result;
 };
 
 self.deleteTaks = async (id) => {
