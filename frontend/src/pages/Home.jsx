@@ -1,33 +1,66 @@
-import React from "react";
-import { Search, Plus, User } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Search, Plus, User, X } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { getList } from "@/store/thunks/listThunk";
+import { getTaks } from "@/store/thunks/taksThunk";
 
 export default function Home() {
-  const taskLists = [
+  const [taskLists, setTaskLists] = useState([
+    { id: 1, title: "Project Ngoding" },
+    { id: 2, title: "Tugas Sekolah" },
+  ]);
+
+  const [tasks, setTasks] = useState([
     {
-      title: "Project Ngoding",
-      tasks: [
-        { name: "Fitur Login", time: "Today At 16:45", id: 1 },
-        { name: "Fitur Tambah Data", time: "Today At 18:20", id: 2 },
-        { name: "Fitur Filter", time: "Today At 08:15", id: 3 },
-      ],
+      list_id: 1,
+      name: "Fitur Login",
+      status: "Doing",
+      priority: "High",
+      date: "2025-03-19",
     },
     {
-      title: "Tugas Sekolah",
-      tasks: [
-        { name: "Tugas Matematika", time: "Today At 16:45", id: 1 },
-        { name: "Tugas Konsentrasi keahlian", time: "Today At 18:20", id: 2 },
-        { name: "Tugas PKK", time: "Today At 08:15", id: 3 },
-      ],
+      list_id: 2,
+      name: "Tugas Matematika",
+      status: "Done",
+      priority: "Medium",
+      date: "2025-03-18",
     },
-    {
-      title: "Jadwal Ngabuburit",
-      tasks: [
-        { name: "Sama teman SMK", time: "Today At 16:45", id: 1 },
-        { name: "Sama Pacar", time: "Today At 18:20", id: 2 },
-        { name: "Bukber Keluarga Besar", time: "Today At 08:15", id: 3 },
-      ],
-    },
-  ];
+  ]);
+
+  const [addingTaskIndex, setAddingTaskIndex] = useState(null);
+  const [newTask, setNewTask] = useState({
+    name: "",
+    status: "Doing",
+    priority: "Low",
+    date: new Date().toISOString().split("T")[0],
+  });
+
+  const token = useSelector((state) => state.auth.token);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getList({ token }));
+    dispatch(getTaks({ token }));
+  }, []);
+
+  const handleAddTask = (listId) => {
+    if (!newTask.name.trim()) return;
+    setTasks([...tasks, { ...newTask, list_id: listId }]);
+    setNewTask({
+      name: "",
+      status: "Doing",
+      priority: "Low",
+      date: new Date().toISOString().split("T")[0],
+    });
+    setAddingTaskIndex(null);
+  };
+
+  const toggleTaskStatus = (index) => {
+    const updatedTasks = [...tasks];
+    updatedTasks[index].status =
+      updatedTasks[index].status === "Done" ? "Doing" : "Done";
+    setTasks(updatedTasks);
+  };
 
   return (
     <div className="min-h-screen bg-background text-white p-6">
@@ -38,8 +71,8 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="bg-secondary p-6 rounded-2xl mt-[2rem]">
-        <div className="flex items-center gap-4 ">
+      <div className="bg-secondary p-6 rounded-2xl mt-8">
+        <div className="flex items-center gap-4">
           <button className="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary transition">
             <Plus size={18} /> List
           </button>
@@ -56,7 +89,9 @@ export default function Home() {
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
           {taskLists.map((list, index) => (
-            <div key={index} className="bg-background p-4 rounded-xl shadow-lg">
+            <div
+              key={list.id}
+              className="bg-background p-4 rounded-xl shadow-lg max-h-96 overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-medium">{list.title}</h2>
                 <button className="bg-secondary px-3 py-1 rounded-md text-sm text-gray-300">
@@ -65,31 +100,113 @@ export default function Home() {
               </div>
 
               <div className="space-y-3">
-                {list.tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex items-center justify-between bg-secondary p-3 rounded-lg">
-                    <div>
-                      <p className="text-white">{task.name}</p>
-                      <p className="text-sm text-white">{task.time}</p>
+                {tasks
+                  .filter((task) => task.list_id === list.id)
+                  .map((task, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center bg-secondary p-3 rounded-lg">
+                      <input
+                        type="checkbox"
+                        checked={task.status === "Done"}
+                        onChange={() => toggleTaskStatus(i)}
+                        className="mr-3 w-5 h-5 cursor-pointer"
+                      />
+                      <div className="flex-1">
+                        <p
+                          className={`text-white ${
+                            task.status === "Done"
+                              ? "line-through opacity-50"
+                              : ""
+                          }`}>
+                          {task.name}
+                        </p>
+                        <p className="text-sm text-gray-300">{task.date}</p>
+                      </div>
+                      <div className="text-sm text-white flex gap-2">
+                        <span
+                          className={`px-2 py-1 rounded-md ${
+                            task.status === "Done"
+                              ? "bg-green-500"
+                              : "bg-yellow-500"
+                          }`}>
+                          {task.status}
+                        </span>
+                        <span
+                          className={`px-2 py-1 rounded-md ${
+                            task.priority === "High"
+                              ? "bg-red-500"
+                              : task.priority === "Medium"
+                              ? "bg-orange-500"
+                              : "bg-blue-500"
+                          }`}>
+                          {task.priority}
+                        </span>
+                      </div>
                     </div>
-                    <span className="px-2 py-1 border border-white rounded-md text-sm">
-                      {task.id}
-                    </span>
-                  </div>
-                ))}
+                  ))}
               </div>
 
-              <div className="mt-4 flex items-center gap-3">
-                <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary transition">
+              {addingTaskIndex === index ? (
+                <div className="mt-4 space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Task name"
+                    value={newTask.name}
+                    onChange={(e) =>
+                      setNewTask({ ...newTask, name: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 rounded-lg border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <div className="flex gap-2">
+                    <select
+                      value={newTask.status}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, status: e.target.value })
+                      }
+                      className="w-1/3 px-3 py-2 bg-gray-700 rounded-lg border border-gray-600 text-white">
+                      <option value="Doing">Doing</option>
+                      <option value="Done">Done</option>
+                    </select>
+                    <select
+                      value={newTask.priority}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, priority: e.target.value })
+                      }
+                      className="w-1/3 px-3 py-2 bg-gray-700 rounded-lg border border-gray-600 text-white">
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                    <input
+                      type="date"
+                      value={newTask.date}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, date: e.target.value })
+                      }
+                      className="w-1/3 px-3 py-2 bg-gray-700 rounded-lg border border-gray-600 text-white"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleAddTask(list.id)}
+                      className="bg-primary px-4 py-2 rounded-lg text-white hover:bg-primary-dark transition">
+                      Add
+                    </button>
+                    <button
+                      onClick={() => setAddingTaskIndex(null)}
+                      className="text-white hover:text-red-400">
+                      <X size={20} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setAddingTaskIndex(index)}
+                  className="mt-4 flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary transition">
                   <Plus size={16} /> Task
                 </button>
-                <input
-                  type="text"
-                  placeholder="Search for your tasks..."
-                  className="flex-1 px-3 py-2 bg-background rounded-lg border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
+              )}
             </div>
           ))}
         </div>

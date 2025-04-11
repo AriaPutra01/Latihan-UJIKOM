@@ -6,7 +6,7 @@ export const getTaks = createAsyncThunk(
   "todo/getTaks",
   async ({ token, onSuccess, onError }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/taks", null, {
+      const response = await axiosInstance.get("/taks", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (onSuccess) onSuccess(response.data);

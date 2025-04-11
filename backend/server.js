@@ -12,6 +12,7 @@ app.use("/uploads", express.static(path.join(__dirname, "public")));
 var corsOption = {
   origin: ["http://localhost:5173"],
   optionsSuccessStatus: 200,
+  credentials: true,
 };
 
 require("dotenv").config();
